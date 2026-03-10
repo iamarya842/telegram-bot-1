@@ -1,47 +1,50 @@
 import telebot
-import time
-import threading
 
 TOKEN = "8153911184:AAFeWlRNxbf-yD_oWyMCuWVMorZR6dRngpo"
-CHANNEL_ID = -1003789323635
+CHANNEL_ID = -1003789323635   # apna channel id
 
 bot = telebot.TeleBot(TOKEN)
 
-# Start command
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.reply_to(message, "🤖 Bot Online Hai\n\nChannel post link bhejo.")
+    text = message.text.split()
 
-# Handle messages
-@bot.message_handler(func=lambda message: True)
-def handle_message(message):
-    try:
-        text = message.text.strip()
+    if len(text) > 1:
+        try:
+            post_id = int(text[1])
 
-        if "t.me/c/" in text:
-            post_id = int(text.split("/")[-1])
-
-            msg = bot.copy_message(
-                chat_id=message.chat.id,
-                from_chat_id=CHANNEL_ID,
-                message_id=post_id
+            bot.copy_message(
+                message.chat.id,
+                CHANNEL_ID,
+                post_id
             )
 
-            # Auto delete
-            def auto_delete():
-                time.sleep(1200)
-                try:
-                    bot.delete_message(message.chat.id, msg.message_id)
-                except:
-                    pass
+        except:
+            bot.send_message(message.chat.id, "⚠️ Post nahi mila")
 
-            threading.Thread(target=auto_delete).start()
+    else:
+        bot.send_message(message.chat.id, "🤖 Bot Online Hai\n\nChannel post link bhejo")
 
-        else:
-            bot.reply_to(message, "❌ Channel post link bhejo.")
+@bot.message_handler(func=lambda message: True)
+def generate_link(message):
 
-    except Exception:
-        bot.reply_to(message, "⚠️ Post nahi mila.")
+    if "t.me/c/" in message.text:
+
+        try:
+            post_id = message.text.split("/")[-1]
+
+            link = f"https://t.me/Ghopghop842_bot?start={post_id}"
+
+            bot.send_message(
+                message.chat.id,
+                f"✅ Bot Link:\n\n{link}"
+            )
+
+        except:
+            bot.send_message(message.chat.id, "⚠️ Link galat hai")
+
+    else:
+        bot.send_message(message.chat.id, "❌ Channel post link bhejo")
 
 print("Bot started...")
 bot.infinity_polling()
